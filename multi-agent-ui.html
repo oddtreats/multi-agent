@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent AI System</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+            background: #0a0e27;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(138, 92, 246, 0.03) 2px, rgba(138, 92, 246, 0.03) 4px),
+                radial-gradient(ellipse at 50% 0%, rgba(138, 92, 246, 0.15), transparent 70%),
+                radial-gradient(ellipse at 50% 100%, rgba(59, 130, 246, 0.15), transparent 70%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e7ff;
+            position: relative;
+        }
+
+        /* CRT scan line effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Subtle vignette */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 14, 39, 0.5) 100%);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            color: #a5b4fc;
+            margin-bottom: 30px;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px rgba(138, 92, 246, 0.5);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #818cf8;
+            font-weight: normal;
+            letter-spacing: 2px;
+        }
+
+        .header h1::before {
+            content: '> ';
+            color: #60a5fa;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.8;
+            color: #c7d2fe;
+        }
+
+        .header p::before {
+            content: '# ';
+            color: #34d399;
+        }
+
+        .main-card {
+            background: #1e1b4b;
+            border-radius: 4px;
+            box-shadow: 
+                0 0 0 2px #4c1d95,
+                0 0 20px rgba(138, 92, 246, 0.3),
+                0 20px 60px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 1px solid #5b21b6;
+        }
+
+        .input-section {
+            padding: 30px;
+            background: #1e1b4b;
+            border-bottom: 2px solid #5b21b6;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #5b21b6;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 100px;
+            transition: all 0.3s;
+            background: #0f172a;
+            color: #e0e7ff;
+        }
+
+        textarea::placeholder {
+            color: #64748b;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+            background: #1e293b;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: 2px solid #5b21b6;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            color: #e0e7ff;
+            box-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 0 20px rgba(124, 58, 237, 0.8),
+                0 10px 20px rgba(124, 58, 237, 0.4);
+            border-color: #7c3aed;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .clear-btn {
+            background: #312e81;
+            color: #a5b4fc;
+            border-color: #4c1d95;
+        }
+
+        .clear-btn:hover {
+            background: #3730a3;
+            border-color: #5b21b6;
+            box-shadow: 0 0 10px rgba(88, 28, 135, 0.5);
+        }
+
+        .agent-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px 30px;
+            background: #0f172a;
+            border-bottom: 1px solid #1e3a8a;
+        }
+
+        .agent-card {
+            background: #1e1b4b;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #7c3aed;
+            box-shadow: 
+                0 0 10px rgba(124, 58, 237, 0.2),
+                inset 0 0 20px rgba(0,0,0,0.2);
+            border: 1px solid #4c1d95;
+            font-family: 'Courier New', monospace;
+        }
+
+        .agent-card h4 {
+            color: #a5b4fc;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        .agent-card h4::before {
+            content: '$ ';
+            color: #34d399;
+        }
+
+        .agent-card .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #c7d2fe;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34d399;
+            box-shadow: 0 0 10px #34d399;
+        }
+
+        .status-dot.thinking {
+            background: #fbbf24;
+            box-shadow: 0 0 10px #fbbf24;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .progress-section {
+            padding: 20px 30px;
+            background: #1e1b4b;
+            border-bottom: 1px solid #4c1d95;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #0f172a;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            border: 1px solid #5b21b6;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7c3aed, #3b82f6, #06b6d4);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+            transition: width 0.3s;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(124, 58, 237, 0.8);
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #a5b4fc;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .progress-text::before {
+            content: '... ';
+            color: #34d399;
+        }
+
+        .results-section {
+            padding: 30px;
+            max-height: 600px;
+            overflow-y: auto;
+            background: #0f172a;
+        }
+
+        .final-answer {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 2px solid #7c3aed;
+            border-radius: 4px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 
+                0 0 20px rgba(124, 58, 237, 0.3),
+                inset 0 0 30px rgba(124, 58, 237, 0.05);
+        }
+
+        .final-answer h2 {
+            color: #a5b4fc;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Courier New', monospace;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        .final-answer h2::before {
+            content: '>> ';
+            color: #34d399;
+        }
+
+        .final-answer p {
+            color: #e0e7ff;
+            line-height: 1.8;
+            font-size: 15px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .deliberation-section {
+            margin-top: 20px;
+        }
+
+        .phase-header {
+            background: #312e81;
+            color: #c7d2fe;
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid #5b21b6;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 0 10px rgba(88, 28, 135, 0.3);
+        }
+
+        .phase-header:hover {
+            background: #3730a3;
+            border-color: #7c3aed;
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.5);
+        }
+
+        .phase-header::before {
+            content: '[+] ';
+            color: #34d399;
+            font-weight: bold;
+        }
+
+        .agent-response {
+            background: #1e1b4b;
+            border: 1px solid #4c1d95;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 
+                0 0 10px rgba(76, 29, 149, 0.2),
+                inset 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        .agent-response h3 {
+            color: #a5b4fc;
+            margin-bottom: 12px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Courier New', monospace;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        .agent-response h3::before {
+            content: '> ';
+            color: #60a5fa;
+        }
+
+        .agent-response p {
+            color: #cbd5e1;
+            line-height: 1.6;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .search-results {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid #34d399;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .search-results h3 {
+            color: #34d399;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: normal;
+        }
+
+        .search-results h3::before {
+            content: '[i] ';
+        }
+
+        .search-results ul {
+            margin-left: 20px;
+            color: #a7f3d0;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+            stroke: #7c3aed;
+        }
+
+        .empty-state h3 {
+            color: #a5b4fc;
+            font-family: 'Courier New', monospace;
+        }
+
+        .empty-state p {
+            color: #64748b;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .loading-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #1e1b4b;
+            border-top: 4px solid #7c3aed;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-content.open {
+            max-height: 5000px;
+        }
+
+        .icon {
+            transition: transform 0.3s;
+        }
+
+        .icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        /* Custom scrollbar styling */
+        .results-section::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .results-section::-webkit-scrollbar-track {
+            background: #0f172a;
+            border-left: 1px solid #4c1d95;
+        }
+
+        .results-section::-webkit-scrollbar-thumb {
+            background: #5b21b6;
+            border-radius: 4px;
+        }
+
+        .results-section::-webkit-scrollbar-thumb:hover {
+            background: #7c3aed;
+            box-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .input-wrapper {
+                flex-direction: column;
+            }
+
+            .button-group {
+                flex-direction: row;
+                width: 100%;
+            }
+
+            button {
+                flex: 1;
+            }
+
+            .agent-status {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const BACKEND_URL = 'http://localhost:3000'; // Change this to your backend URL
+
+        const agents = [
+            { name: 'Agent 1', port: 12000, model: 'llama3' },
+            { name: 'Agent 2', port: 12001, model: 'mistral' },
+            { name: 'Agent 3', port: 12002, model: 'gemma2' },
+            { name: 'Agent 4', port: 12003, model: 'phi3' },
+            { name: 'Agent 5', port: 12004, model: 'qwen2' }
+        ];
+
+        function App() {
+            const [query, setQuery] = useState('');
+            const [result, setResult] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [progress, setProgress] = useState(0);
+            const [currentPhase, setCurrentPhase] = useState('');
+            const [agentStatuses, setAgentStatuses] = useState(
+                agents.map(a => ({ ...a, status: 'idle' }))
+            );
+            const [showInitial, setShowInitial] = useState(true);
+            const [showDeliberation, setShowDeliberation] = useState(true);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!query.trim()) return;
+
+                setLoading(true);
+                setResult(null);
+                setProgress(0);
+                setCurrentPhase('Initializing...');
+
+                // Simulate progress and agent statuses
+                const progressInterval = setInterval(() => {
+                    setProgress(prev => Math.min(prev + 10, 90));
+                }, 500);
+
+                try {
+                    // Update phase: Searching
+                    setCurrentPhase('Searching the internet...');
+                    setAgentStatuses(agents.map(a => ({ ...a, status: 'searching' })));
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    // Update phase: Initial responses
+                    setCurrentPhase('Getting initial responses from all agents...');
+                    setAgentStatuses(agents.map(a => ({ ...a, status: 'thinking' })));
+                    setProgress(30);
+
+                    // Update phase: Deliberation
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    setCurrentPhase('Agents are deliberating...');
+                    setProgress(60);
+
+                    // Update phase: Consensus
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    setCurrentPhase('Building consensus...');
+                    setProgress(80);
+
+                    // Make actual API call
+                    const response = await fetch(`${BACKEND_URL}/query`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to get response');
+                    }
+
+                    const data = await response.json();
+                    setResult(data);
+                    setProgress(100);
+                    setCurrentPhase('Complete!');
+                    setAgentStatuses(agents.map(a => ({ ...a, status: 'idle' })));
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error: ' + error.message + '\n\nMake sure your backend server is running on port 3000!');
+                    setAgentStatuses(agents.map(a => ({ ...a, status: 'idle' })));
+                } finally {
+                    clearInterval(progressInterval);
+                    setLoading(false);
+                }
+            };
+
+            const handleClear = () => {
+                setQuery('');
+                setResult(null);
+                setProgress(0);
+                setCurrentPhase('');
+            };
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>MULTI-AGENT.SYS</h1>
+                        <p>Five AI agents | Collaborative intelligence protocol</p>
+                    </div>
+
+                    <div className="main-card">
+                        <div className="input-section">
+                            <form onSubmit={handleSubmit}>
+                                <div className="input-wrapper">
+                                    <textarea
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                        placeholder="Ask your question... (e.g., 'What are the latest developments in AI?' or 'Compare the top 5 programming languages for 2024')"
+                                        disabled={loading}
+                                    />
+                                    <div className="button-group">
+                                        <button 
+                                            type="submit" 
+                                            className="submit-btn"
+                                            disabled={loading || !query.trim()}
+                                        >
+                                            {loading ? '[PROCESSING...]' : '[EXECUTE]'}
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            className="clear-btn"
+                                            onClick={handleClear}
+                                            disabled={loading}
+                                        >
+                                            [CLEAR]
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div className="agent-status">
+                            {agentStatuses.map((agent, idx) => (
+                                <div key={idx} className="agent-card">
+                                    <h4>{agent.name}</h4>
+                                    <div className="status">
+                                        <span className={`status-dot ${agent.status === 'thinking' || agent.status === 'searching' ? 'thinking' : ''}`}></span>
+                                        <span>{agent.status === 'idle' ? 'Ready' : agent.status === 'searching' ? 'Searching...' : 'Thinking...'}</span>
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#6c757d', marginTop: '5px' }}>
+                                        {agent.model}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {loading && (
+                            <div className="progress-section">
+                                <div className="progress-bar">
+                                    <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+                                </div>
+                                <div className="progress-text">{currentPhase}</div>
+                            </div>
+                        )}
+
+                        <div className="results-section">
+                            {loading && (
+                                <div className="loading-animation">
+                                    <div className="spinner"></div>
+                                </div>
+                            )}
+
+                            {!loading && !result && (
+                                <div className="empty-state">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                    </svg>
+                                    <h3>SYSTEM IDLE</h3>
+                                    <p>Awaiting input to initialize collaborative protocol...</p>
+                                </div>
+                            )}
+
+                            {result && (
+                                <>
+                                    <div className="final-answer">
+                                        <h2>CONSENSUS OUTPUT</h2>
+                                        <p>{result.finalResponse}</p>
+                                    </div>
+
+                                    {result.searchResults && (
+                                        <div className="search-results">
+                                            <h3>WEB SEARCH RESULTS:</h3>
+                                            <ul>
+                                                {result.searchResults.map((item, idx) => (
+                                                    <li key={idx}>{item}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    <div className="deliberation-section">
+                                        <div className="phase-header" onClick={() => setShowInitial(!showInitial)}>
+                                            <span className={`icon ${showInitial ? 'rotated' : ''}`}>▼</span>
+                                            <span>PHASE 1: INITIAL RESPONSES</span>
+                                        </div>
+                                        <div className={`collapsible-content ${showInitial ? 'open' : ''}`}>
+                                            {result.initialResponses?.map((resp, idx) => (
+                                                <div key={idx} className="agent-response">
+                                                    <h3>{resp.agent}</h3>
+                                                    <p>{resp.response}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="phase-header" onClick={() => setShowDeliberation(!showDeliberation)}>
+                                            <span className={`icon ${showDeliberation ? 'rotated' : ''}`}>▼</span>
+                                            <span>PHASE 2: AGENT DELIBERATIONS</span>
+                                        </div>
+                                        <div className={`collapsible-content ${showDeliberation ? 'open' : ''}`}>
+                                            {result.deliberations?.map((delib, idx) => (
+                                                <div key={idx} className="agent-response">
+                                                    <h3>{delib.agent}</h3>
+                                                    <p>{delib.deliberation}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

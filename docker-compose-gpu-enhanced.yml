@@ -1,0 +1,131 @@
+version: '3.8'
+
+# Enhanced GPU version with explicit CUDA configuration
+# This version includes additional CUDA-specific settings
+
+services:
+  # Agent 1 - Llama 3
+  ollama-agent1:
+    image: ollama/ollama:latest
+    container_name: ollama-agent1
+    ports:
+      - "12000:11434"
+    volumes:
+      - ollama1-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    restart: unless-stopped
+    runtime: nvidia  # Explicitly use NVIDIA runtime
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Agent 2 - Mistral
+  ollama-agent2:
+    image: ollama/ollama:latest
+    container_name: ollama-agent2
+    ports:
+      - "12001:11434"
+    volumes:
+      - ollama2-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    restart: unless-stopped
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Agent 3 - Gemma 2
+  ollama-agent3:
+    image: ollama/ollama:latest
+    container_name: ollama-agent3
+    ports:
+      - "12002:11434"
+    volumes:
+      - ollama3-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    restart: unless-stopped
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Agent 4 - Phi 3
+  ollama-agent4:
+    image: ollama/ollama:latest
+    container_name: ollama-agent4
+    ports:
+      - "12003:11434"
+    volumes:
+      - ollama4-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    restart: unless-stopped
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Agent 5 - Qwen 2
+  ollama-agent5:
+    image: ollama/ollama:latest
+    container_name: ollama-agent5
+    ports:
+      - "12004:11434"
+    volumes:
+      - ollama5-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    restart: unless-stopped
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  ollama1-data:
+    driver: local
+  ollama2-data:
+    driver: local
+  ollama3-data:
+    driver: local
+  ollama4-data:
+    driver: local
+  ollama5-data:
+    driver: local
+
+networks:
+  default:
+    name: ollama-network

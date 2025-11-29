@@ -1,0 +1,31 @@
+{
+  "name": "multi-agent-ollama-system",
+  "version": "1.0.0",
+  "description": "Multi-agent AI system with 5 Ollama instances working together",
+  "main": "backend-server.js",
+  "scripts": {
+    "start": "node backend-server.js",
+    "dev": "nodemon backend-server.js",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "setup:models": "node setup-models.js",
+    "test": "node test-system.js"
+  },
+  "keywords": [
+    "ollama",
+    "ai",
+    "multi-agent",
+    "llm"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
